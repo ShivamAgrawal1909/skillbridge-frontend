@@ -23,8 +23,6 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const { access_token } = await login(email, password)
-      // set token first so getMe interceptor can use it
-      useAuthStore.setState({ token: access_token })
       const user = await getMe()
       setAuth(access_token, user)
       toast.success(`Welcome back, ${user.full_name}!`)
