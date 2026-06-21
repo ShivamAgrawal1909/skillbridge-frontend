@@ -1,5 +1,6 @@
 import api from './client'
 import { User } from '@/lib/types'
+import axios from 'axios'
 
 export async function login(email: string, password: string) {
   const res = await api.post('/auth/login', { email, password })
@@ -17,8 +18,12 @@ export async function register(data: {
   return res.data as User
 }
 
-export async function getMe() {
-  const res = await api.get('/auth/me')
+export async function getMe(token: string) {
+  // pass token directly — don't rely on interceptor
+  const res = await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/me`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
   return res.data as User
 }
 

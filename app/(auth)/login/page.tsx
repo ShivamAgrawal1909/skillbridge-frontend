@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const { access_token } = await login(email, password)
-      const user = await getMe()
+      const user = await getMe(access_token)
       setAuth(access_token, user)
       toast.success(`Welcome back, ${user.full_name}!`)
       if (user.role === 'admin') router.push('/admin')
