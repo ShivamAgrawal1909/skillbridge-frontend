@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/lib/store/auth'
 import { logout } from '@/lib/api/auth'
+import { MessageSquare } from 'lucide-react'
 
 export default function Navbar() {
   const { user, clearAuth } = useAuthStore()
@@ -25,7 +26,13 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-6 text-sm text-slate-600">
           <Link href="/providers" className="hover:text-blue-800 transition-colors">Browse Experts</Link>
-          <Link href="#how-it-works" className="hover:text-blue-800 transition-colors">How it Works</Link>
+          <Link href="/#how-it-works" className="hover:text-blue-800 transition-colors">How it Works</Link>
+          {user && (
+            <Link href="/messages" className="hover:text-blue-800 transition-colors flex items-center gap-1">
+              <MessageSquare className="w-4 h-4" />
+              Messages
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
