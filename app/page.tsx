@@ -4,6 +4,7 @@ import Categories from '@/components/landing/Categories'
 import HowItWorks from '@/components/landing/HowItWorks'
 import StatsBar from '@/components/landing/StatsBar'
 import CTASection from '@/components/landing/CTASection'
+import Footer from '@/components/layout/Footer'
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <HowItWorks />
       <StatsBar />
       <CTASection />
+      <Footer />
     </main>
   )
 }
