@@ -33,5 +33,9 @@ export async function refreshToken() {
 }
 
 export async function logout() {
-  await api.post('/auth/logout')
+  try {
+    await api.post('/auth/logout')
+  } catch {
+    // ignore errors on logout
+  }
 }
