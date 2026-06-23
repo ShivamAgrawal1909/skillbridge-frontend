@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,15 +12,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { login, getMe } from '@/lib/api/auth'
 import { useAuthStore } from '@/lib/store/auth'
 
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
 export default function LoginPage() {
   const router = useRouter()
   const setAuth = useAuthStore((s) => s.setAuth)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setErrors({})
+
+    const result = loginSchema.safeParse({ email, password })
+    if (!result.success) {
+      const fieldErrors: { email?: string; password?: string } = {}
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as 'email' | 'password'
+        fieldErrors[field] = err.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
     setLoading(true)
     try {
       const { access_token } = await login(email, password)
@@ -55,8 +75,8 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
+              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
@@ -66,8 +86,8 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
+              {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
             </div>
             <Button
               type="submit"

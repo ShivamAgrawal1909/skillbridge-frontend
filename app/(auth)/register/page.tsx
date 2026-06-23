@@ -4,22 +4,46 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { register } from '@/lib/api/auth'
 
+const registerSchema = z.object({
+  full_name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+})
+
 export default function RegisterPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [role, setRole] = useState<'client' | 'provider' | null>(null)
   const [form, setForm] = useState({ full_name: '', email: '', password: '' })
+  const [errors, setErrors] = useState<{ full_name?: string; email?: string; password?: string }>({})
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!role) return
+    setErrors({})
+
+    const result = registerSchema.safeParse(form)
+    if (!result.success) {
+      const fieldErrors: typeof errors = {}
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as keyof typeof errors
+        fieldErrors[field] = err.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
+
     setLoading(true)
     try {
       await register({ ...form, role })
@@ -74,8 +98,8 @@ export default function RegisterPage() {
                   placeholder="Rahul Sharma"
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  required
                 />
+                {errors.full_name && <p className="text-xs text-red-500">{errors.full_name}</p>}
               </div>
               <div className="space-y-1">
                 <Label>Email</Label>
@@ -84,34 +108,24 @@ export default function RegisterPage() {
                   placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
                 />
+                {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
               </div>
               <div className="space-y-1">
                 <Label>Password</Label>
                 <Input
                   type="password"
-                  placeholder="Min 8 characters"
+                  placeholder="Min 8 chars, 1 number, 1 special char"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  required
-                  minLength={8}
                 />
+                {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
               </div>
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setStep(1)}
-                >
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-blue-800 hover:bg-blue-900"
-                  disabled={loading}
-                >
+                <Button type="submit" className="flex-1 bg-blue-800 hover:bg-blue-900" disabled={loading}>
                   {loading ? 'Creating...' : 'Create account'}
                 </Button>
               </div>
