@@ -1,12 +1,12 @@
 import axios from 'axios'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/lib/store/auth'
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  withCredentials: true, // sends httpOnly cookie automatically
+  withCredentials: true,
 })
 
-// add token to every request
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
   if (token) {
@@ -15,13 +15,13 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// handle 401 — try silent refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
+    const status = error.response?.status
 
-    if (error.response?.status === 401 && !original._retry) {
+    if (status === 401 && !original._retry) {
       original._retry = true
       try {
         const res = await axios.post(
@@ -37,6 +37,18 @@ api.interceptors.response.use(
         useAuthStore.getState().clearAuth()
         window.location.href = '/login'
       }
+    }
+
+    if (status === 429) {
+      toast.error('Too many requests — please wait a moment', { duration: 4000 })
+    }
+
+    if (status === 500) {
+      toast.error('Server error — please try again', { duration: 4000 })
+    }
+
+    if (!error.response) {
+      toast.error('Check your internet connection', { duration: 4000 })
     }
 
     return Promise.reject(error)

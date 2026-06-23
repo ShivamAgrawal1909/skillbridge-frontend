@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { useEffect } from 'react'
 import { refreshToken, getMe } from '@/lib/api/auth'
 import { useAuthStore } from '@/lib/store/auth'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 const queryClient = new QueryClient()
@@ -39,10 +40,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            {children}
-            <Toaster position="bottom-right" />
-          </AuthProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              {children}
+              <Toaster position="bottom-right" />
+            </AuthProvider>
+          </ErrorBoundary>
         </QueryClientProvider>
       </body>
     </html>
