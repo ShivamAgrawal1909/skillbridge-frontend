@@ -50,6 +50,7 @@ export interface Conversation {
   provider_id: string
   request_id: string | null
   unread_count: number
+  other_name: string | null
 }
 
 export interface Message {

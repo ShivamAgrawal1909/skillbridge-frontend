@@ -55,9 +55,14 @@ export default function MessagesPage() {
                   className="bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer"
                 >
                   <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-slate-800">Conversation</p>
-                      <p className="text-sm text-slate-500 mt-1">Click to open chat</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
+                        {conv.other_name?.[0] || '?'}
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">{conv.other_name || 'Conversation'}</p>
+                        <p className="text-sm text-slate-500 mt-0.5">Click to open chat</p>
+                      </div>
                     </div>
                     {conv.unread_count > 0 && (
                       <span className="bg-blue-800 text-white text-xs font-bold px-2.5 py-1 rounded-full">
