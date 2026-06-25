@@ -1,22 +1,46 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getProvider } from '@/lib/api/providers'
+import { startConversation } from '@/lib/api/messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Star, Clock, ArrowLeft } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuthStore } from '@/lib/store/auth'
+import { toast } from 'sonner'
 
 export default function ProviderProfilePage() {
   const { id } = useParams()
   const router = useRouter()
+  const { user } = useAuthStore()
 
   const { data: provider, isLoading } = useQuery({
     queryKey: ['provider', id],
     queryFn: () => getProvider(id as string),
   })
+
+  const contactMutation = useMutation({
+    mutationFn: () => startConversation(provider!.user_id),
+    onSuccess: (conv) => {
+      router.push(`/messages/${conv.id}`)
+    },
+    onError: () => toast.error('Failed to start conversation'),
+  })
+
+  function handleContact() {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    if (user.role !== 'client') {
+      toast.error('Only clients can contact providers')
+      return
+    }
+    contactMutation.mutate()
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -38,7 +62,6 @@ export default function ProviderProfilePage() {
             </div>
           ) : provider ? (
             <div className="space-y-6">
-              {/* header card */}
               <div className="bg-white rounded-xl border border-slate-200 p-8">
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-3xl flex-shrink-0">
@@ -69,19 +92,22 @@ export default function ProviderProfilePage() {
                   </div>
                   <div className="text-right">
                     {provider.hourly_rate && (
-                      <div className="text-2xl font-bold text-slate-900 mb-1">
+                      <div className="text-2xl font-bold text-slate-900 mb-3">
                         ₹{parseFloat(provider.hourly_rate).toLocaleString('en-IN')}
                         <span className="text-base font-normal text-slate-500">/hr</span>
                       </div>
                     )}
-                    <Button className="bg-blue-800 hover:bg-blue-900 w-full md:w-auto">
-                      Contact
+                    <Button
+                      className="bg-blue-800 hover:bg-blue-900 w-full md:w-auto"
+                      onClick={handleContact}
+                      disabled={contactMutation.isPending}
+                    >
+                      {contactMutation.isPending ? 'Starting...' : 'Contact'}
                     </Button>
                   </div>
                 </div>
               </div>
 
-              {/* bio */}
               {provider.bio && (
                 <div className="bg-white rounded-xl border border-slate-200 p-6">
                   <h2 className="text-lg font-semibold text-slate-800 mb-3">About</h2>
@@ -89,7 +115,6 @@ export default function ProviderProfilePage() {
                 </div>
               )}
 
-              {/* skills */}
               {provider.skills.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 p-6">
                   <h2 className="text-lg font-semibold text-slate-800 mb-4">Skills</h2>
