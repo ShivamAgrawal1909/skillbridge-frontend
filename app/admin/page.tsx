@@ -18,7 +18,7 @@ async function getPendingProviders() {
 }
 
 async function getAllProviders() {
-  const res = await api.get('/providers')
+  const res = await api.get('/providers/admin/all')
   return res.data as ProviderProfile[]
 }
 
