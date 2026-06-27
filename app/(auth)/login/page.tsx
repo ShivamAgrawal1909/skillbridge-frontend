@@ -32,7 +32,7 @@ export default function LoginPage() {
     const result = loginSchema.safeParse({ email, password })
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {}
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const field = err.path[0] as 'email' | 'password'
         fieldErrors[field] = err.message
       })
